@@ -9,14 +9,10 @@
 # generator doesn't need a success detector to be successful. Anything after
 # goal has been reached is ignored.
 
-# The error line detection is not necessarily very precise. For example, we do
-# not really check the soundness of state descriptions (e.g. no repeats of
-# blocks), we only check whether they are identical to the correct
-# current_state (which is assumed correct due to correctness of initial state
-# and valid actions). So the line at which an error occurs for both wrong
-# states and incomplete states is the same - at the next 'action:' line, which
-# concludes the current state description. Ideally we would like incorrect
-# state descriptions to be caught right at the point of incorrectness.
+# Ideally we would like incorrect state descriptions to be caught right at the
+# point of incorrectness.  This version made some progress towards that goal.
+# Now, duplicate blocks in state descriptions are caught as soon as they are
+# mentioned, and so are blocks that are not part of current_state.
 
 import re
 import pdb
@@ -49,16 +45,23 @@ for numline, l in enumerate(lines):
         continue
 
     if stage == 'state':
-        if lines[numline-1] == 'state:':  # Hacky, but works
+        if lines[numline-1] == 'state:': 
+            # Initialize read_state if 1st line of state description. Hacky, but works
             read_state = []
         if re.match('^(b[0-9] on )+table$', l):
             blocks = l.split(' on ')
             assert blocks[-1] == 'table'
             read_state.append(blocks[:-1])
+            if len(sum(read_state, [])) != len(set(sum(read_state, []))):  
+                # If there are any doublets
+                error_type = 'Duplicate block in state description'; break
+            if current_state != []:  # Again, we assume that the initial state description is correct
+                if not set(sum(read_state, [])).issubset( set(sum(current_state, [])) ):
+                    error_type = 'Some blocks in state description are not in current_state'; break
         elif l == 'goal:':
+            # State description is over. Was it any good?
             if read_state == []:
                 error_type = 'No state description or invalid state description'; break
-
             if current_state == []:  
                 # We don't check the initial state description. We should check
                 # whether blocks are not used multiple times. 
@@ -91,7 +94,7 @@ for numline, l in enumerate(lines):
             if success:
                 break
         elif l == 'action:':  
-            # Note that this is only executed if we have a next action prompt -i.e. not at 'OK'
+            # Note that this is only executed if we have a next action prompt -i.e. not if this is the last goal statement before an 'OK' tha concludes a correct plan
             if read_goal == []:
                 error_type = 'No state description or invalid state description'; break
             if current_goal != read_goal:
@@ -162,5 +165,5 @@ elif error_type == '':
 else:
     print("Error: "+error_type)
 print("Total number of lines in plan:", len(lines))
-print("Last processed line:", numline)
+print("Last processed line (l."+str(numline)+"): >"+lines[numline]+"<")
 
