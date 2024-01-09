@@ -22,10 +22,12 @@ def check_plan(plan):   # plan should be a list of strings
     # generator doesn't need a success detector to be successful. Anything after
     # goal has been reached is ignored.
     
-    # Ideally we would like incorrect state descriptions to be caught right at the
-    # point of incorrectness.  This version made some progress towards that goal.
-    # Now, duplicate blocks in state descriptions are caught as soon as they are
-    # mentioned, and so are blocks that are not part of current_state.
+    # Ideally we would like incorrect state descriptions to be caught right at
+    # the point of incorrectness.  This version made some progress towards that
+    # goal.  Now, duplicate blocks in state descriptions are caught as soon as
+    # they are mentioned, and so are blocks that are not part of current_state.
+    # Now it also catches if the latest pile described is not part of the
+    # current state.
 
 
     lines = [line.rstrip() for line in plan]
@@ -53,13 +55,14 @@ def check_plan(plan):   # plan should be a list of strings
             if re.match('^(b[0-9] on )+table$', l):
                 blocks = l.split(' on ')
                 assert blocks[-1] == 'table'
-                read_state.append(blocks[:-1])
+                new_pile = blocks[:-1]
+                if current_state != []:  # Again, we assume that the initial state description is correct
+                    if new_pile not in current_state:
+                        error_type = 'Described pile not in current_state'; break
+                read_state.append(new_pile)
                 if len(sum(read_state, [])) != len(set(sum(read_state, []))):  
                     # If there are any doublets
                     error_type = 'Duplicate block in state description'; break
-                if current_state != []:  # Again, we assume that the initial state description is correct
-                    if not set(sum(read_state, [])).issubset( set(sum(current_state, [])) ):
-                        error_type = 'Some blocks in state description are not in current_state'; break
             elif l == 'goal:':
                 # State description is over. Was it any good?
                 if read_state == []:
@@ -115,7 +118,7 @@ def check_plan(plan):   # plan should be a list of strings
                 if read_action != []:
                     error_type = 'Multiple action descriptions'; break
                 read_action = l[4:].split(' on ')
-            elif l == 'state:':
+            elif l == 'state:':  # action description done, let's check it
                 if read_action[0] == read_action[1]:
                     error_type = 'Action involves same block twice'; break
                 b1_reachable = b2_reachable = False
@@ -140,6 +143,8 @@ def check_plan(plan):   # plan should be a list of strings
                     current_state.append([read_action[0]])
                 stage = 'state'
                 continue
+            else:
+                error_type = 'Syntax error in action description'; break
 
     # We are out of the loop. Several conditions are possible.
     
@@ -211,7 +216,9 @@ def problemgen(nb_blocks=6):
 
 if __name__ == "__main__":
 
-    with open('plan5.txt') as f:
+    #fname = 'bad_plan5_1.txt'
+    fname = 'bad_plan5_5.txt'
+    with open(fname) as f:
         plan = [l.rstrip() for l in f]
 
     o = check_plan(plan)

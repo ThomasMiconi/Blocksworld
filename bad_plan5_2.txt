@@ -1,0 +1,37 @@
+state:
+b2 on table
+b5 on b7 on b9 on table
+b1 on table
+b6 on table
+goal:
+b7 on b6
+action:
+put b5 on table
+state:
+b2 on table
+b7 on b9 on table
+b1 on table
+b6 on table
+b5 on table
+goal:
+b7 on b6
+action:
+put b2 on b1
+state:
+b2 on b1 on table
+b7 on b9 on table
+b8 on table
+b6 on table
+b5 on table
+goal:
+b7 on b6
+action:
+put b7 on b6
+state:
+b2 on b1 on table
+b9 on table
+b7 on b6 on table
+b5 on table
+goal:
+b7 on b6
+OK
