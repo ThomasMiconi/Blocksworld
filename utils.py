@@ -13,21 +13,19 @@ def check_plan(plan):   # plan should be a list of strings
 
     # This version works, but see the restrictions below
 
-    # For now, we assume that the initial state and goal descriptions are valid.
-    # Also, goals only involve two blocks
+    # For now, requires that goals only involve two blocks - otherwise, syntax error.
+
+    # Trying to make it also detect errors in initial state/goal description.
     
-    # We stop checking and reaturn 'success' as soon as we detect that the state
+    # We stop checking and return 'success' as soon as we detect that the state
     # implements the goal. We do NOT require the generator to output 'OK' or
     # otherwise acknowledge that the goal has been reached. This means that the
     # generator doesn't need a success detector to be successful. Anything after
     # goal has been reached is ignored.
     
     # Ideally we would like incorrect state descriptions to be caught right at
-    # the point of incorrectness.  This version made some progress towards that
-    # goal.  Now, duplicate blocks in state descriptions are caught as soon as
-    # they are mentioned, and so are blocks that are not part of current_state.
-    # Now it also catches if the latest pile described is not part of the
-    # current state.
+    # the point of incorrectness. For now it should catch error line-by-line,
+    # rather than word-by-word.
 
 
     lines = [line.rstrip() for line in plan]
@@ -56,20 +54,22 @@ def check_plan(plan):   # plan should be a list of strings
                 blocks = l.split(' on ')
                 assert blocks[-1] == 'table'
                 new_pile = blocks[:-1]
-                if current_state != []:  # Again, we assume that the initial state description is correct
+                if current_state != []:  
                     if new_pile not in current_state:
                         error_type = 'Described pile not in current_state'; break
                 read_state.append(new_pile)
                 if len(sum(read_state, [])) != len(set(sum(read_state, []))):  
-                    # If there are any doublets
+                    # If there are any doublets; given the above, should only occur
+                    # if the initial description is incorrect.
                     error_type = 'Duplicate block in state description'; break
             elif l == 'goal:':
                 # State description is over. Was it any good?
                 if read_state == []:
                     error_type = 'No state description or invalid state description'; break
                 if current_state == []:  
-                    # We don't check the initial state description. We should check
-                    # whether blocks are not used multiple times. 
+                    # We don't check the initial state description. In the above we check for 
+                    # correct syntax and doublets, which should catch incorrect initial 
+                    # state descriptions.
                     current_state = read_state
                 elif sorted(["".join(x) for x in read_state]) != sorted(["".join(x) for x in current_state]):
                     error_type = 'Described state is not identical to current state'; break  
@@ -85,11 +85,18 @@ def check_plan(plan):   # plan should be a list of strings
                 if read_goal != []:
                     error_type = 'Multiple goal descriptions'; break
                 read_goal = l.split(' on ')
+                if read_goal[0] == read_goal[1]:
+                    error_type = 'Goal description involves the same block twice'; break
+                if (read_goal[0] not in sum(current_state, []) or 
+                            read_goal[1] not in  sum(current_state, [])):
+                    error_type = 'Goal description involves blocks not in current state'; break
                 if current_goal == []:
-                    # Again, we don't check initial goal description. We should
-                    # check if it involves two different blocks, all present in the
-                    # state description
                     current_goal = read_goal
+                else:
+                    if current_goal != read_goal:
+                        # Can't change the goal along the way!
+                        # This really belongs here, rather than in goal checking below
+                        error_type = 'Described goal is not identical to current goal'; break
                 # Check if the goal has actually been reached
                 assert success == False
                 for pile in current_state:
@@ -103,9 +110,6 @@ def check_plan(plan):   # plan should be a list of strings
                 # Note that this is only executed if we have a next action prompt -i.e. not if this is the last goal statement in the plan with no further action.
                 if read_goal == []:
                     error_type = 'No state description or invalid state description'; break
-                if current_goal != read_goal:
-                    error_type = 'Described goal is not identical to current goal'; break
-
                 stage = 'action'
                 continue
             else:
@@ -216,13 +220,26 @@ def problemgen(nb_blocks=6):
 
 if __name__ == "__main__":
 
-    #fname = 'bad_plan5_1.txt'
-    fname = 'bad_plan5_5.txt'
-    with open(fname) as f:
-        plan = [l.rstrip() for l in f]
+    import os
 
-    o = check_plan(plan)
-    print(o)
+    # fname = 'plans/bad_plan5_9.txt'
+    mydir = './plans'
+    fname_list = sorted(os.listdir(mydir))
+    for fname in fname_list:
+        if '.txt' not in fname:
+            continue
+        fname = mydir+'/'+fname
+        print(fname, ': ', end='')
+        with open(fname) as f:
+            plan = [l.rstrip() for l in f]
+
+        o = check_plan(plan)
+        if o['success']:
+            print("Success!")
+        else:
+            print("Error!", o['error_type'], "at line", str(o['last_line_num']), 
+                '>>'+o['last_line']+'<<')
+
 
     problem = problemgen(nb_blocks=6)
     print("state:")
