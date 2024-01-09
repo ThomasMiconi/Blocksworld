@@ -38,12 +38,10 @@ def check_plan(plan):   # plan should be a list of strings
 
     for numline, l in enumerate(lines):
         
-        #print(">"+l+"<")
-
-        # We ignore the first line, which should simply say 'state:' - again, we assume
-        # the initial state description is valid.
+        # We process the first line, which should simply say 'state:' 
         if numline == 0:
-            assert l == 'state:'
+            if l != 'state:':
+                error_type = 'First line of plan should be just "state:"'; break
             continue
 
         if stage == 'state':
