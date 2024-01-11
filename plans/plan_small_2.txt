@@ -1,0 +1,13 @@
+state:
+b4 on b2 on table
+b3 on b1 on table
+goal:
+b3 on b4
+action:
+put b3 on b4
+state:
+b3 on b4 on b2 on table
+b1 on table
+goal:
+b3 on b4
+OK

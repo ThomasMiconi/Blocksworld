@@ -1,0 +1,179 @@
+ new plan
+ state:
+ b6 on b4 on b1 on table
+ b3 on table
+ b2 on b5 on table
+ goal:
+ b2 on b1
+ action:
+ put b6 on b3
+ state:
+ b4 on b1 on table
+ b6 on b3 on table
+ b2 on b5 on table
+ goal: 
+ b2 on b1
+ action:
+ put b4 on table
+ state:
+ b1 on table
+ b4 on table
+ b6 on b3 on table
+ b2 on b5 on table
+ goal:
+ b2 on b1
+ action:
+ put b2 on b1
+ state:
+ b2 on b1 on table
+ b4 on table
+ b6 on b3 on table
+ b5 on table
+ goal: 
+ b2 on b1
+ OK
+ 
+ new plan
+ state:
+ b4 on b2 on b6 on table
+ b1 on table
+ goal:
+ b1 on b2
+ action:
+ put b4 on table
+ state:
+ b2 on b6 on table
+ b1 on table
+ b4 on table
+ goal:
+ b1 on b2
+ action:
+ put b1 on b2
+ state:
+ b1 on b2 on b6 on table
+ b4 on table
+ goal:
+ b1 on b2
+ OK
+ 
+ new plan
+ state:
+ b3 on b2 on b5 on table
+ b1 on b8 on table
+ b7 on table
+ goal:
+ b2 on b8
+ action:
+ put b3 on table
+ state:
+ b2 on b5 on table
+ b1 on b8 on table
+ b7 on table
+ b3 on table
+ goal:
+ b2 on b8
+ action:
+ put b1 on table
+ state:
+ b2 on b5 on table
+ b8 on table
+ b7 on table
+ b3 on table
+ b1 on table
+ goal:
+ b2 on b8
+ action:
+ put b2 on b8
+ state:
+ b5 on table
+ b7 on table
+ b3 on table
+ b2 on b8 on table
+ b1 on table
+ goal:
+ b2 on b8
+ OK
+ 
+ new plan
+ state:
+ b7 on b0 on table
+ b4 on b1 on b5 on table
+ b9 on table
+ goal:
+ b9 on b1
+ action:
+ put b4 on table
+ state:
+ b7 on b0 on table
+ b1 on b5 on table
+ b9 on table
+ b4 on table
+ goal:
+ b9 on b1
+ action:
+ put b1 on table
+ state:
+ b7 on b0 on table
+ b5 on table
+ b9 on table
+ b4 on table
+ b1 on table
+ goal:
+ b9 on b1
+ action:
+ put b9 on b1
+ state:
+ b7 on b0 on table
+ b5 on table
+ b4 on table
+ b9 on b1 on table
+ goal:
+ b9 on b1
+ OK
+ 
+ new plan
+ state:
+ b2 on table
+ b5 on b7 on b9 on table
+ b1 on table
+ b6 on table
+ goal:
+ b7 on b6
+ action:
+ put b5 on table
+ state:
+ b2 on table
+ b7 on b9 on table
+ b1 on table
+ b6 on table
+ b5 on table
+ goal:
+ b7 on b6
+ action:
+ put b2 on b1
+ state:
+ b2 on b1 on table
+ b7 on b9 on table
+ b6 on table
+ b5 on table
+ goal:
+ b7 on b6
+ action:
+ put b7 on b6
+ state:
+ b2 on b1 on table
+ b9 on table
+ b7 on b6 on table
+ b5 on table
+ goal:
+ b7 on b6
+ OK
+ 
+ new plan
+ state:
+ b0 on b8 on b3 on b2 on table
+ b5 on table
+ b4 on table
+ goal:
+ b8 on b4
+ action:

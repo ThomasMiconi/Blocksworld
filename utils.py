@@ -120,7 +120,7 @@ def check_plan(plan):   # plan should be a list of strings
                 if read_action != []:
                     error_type = 'Multiple action descriptions'; break
                 read_action = l[4:].split(' on ')
-            elif l == 'state:':  # action description done, let's check it
+            elif l == 'state:':  # action description done, let's check it and perform it
                 if read_action[0] == read_action[1]:
                     error_type = 'Action involves same block twice'; break
                 b1_reachable = b2_reachable = False
@@ -133,16 +133,21 @@ def check_plan(plan):   # plan should be a list of strings
                         b2_reachable = True
                 if not (b1_reachable and b2_reachable):
                     errortype = 'Action involves blocks not reachable or not in state'; break
+                #print("Current state before action:", current_state)
+                #print("Action to be done:", read_action)
                 for numpile, pile in enumerate(current_state):
                     if read_action[0] == pile[0]:
                         if len(pile) == 1:
                             current_state.pop(numpile) 
                         else:
                             current_state[numpile] = current_state[numpile][1:]
-                    if read_action[1] == pile[0]:
-                        current_state[numpile] = [read_action[0]] + current_state[numpile]
                 if read_action[1] == 'table':
                     current_state.append([read_action[0]])
+                else:
+                    for numpile, pile in enumerate(current_state):
+                        if read_action[1] == pile[0]:
+                            current_state[numpile] = [read_action[0]] + current_state[numpile]
+                #print("Current state after action:", current_state)
                 stage = 'state'
                 continue
             else:
