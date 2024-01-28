@@ -190,12 +190,19 @@ def check_plan(plan):   # plan should be a list of strings
 
 
 
-def problemgen(nb_blocks=6):
+def problemgen(nb_blocks=4):
+    def state_goal(piles, goal):
+        mystr = ' state:\n'
+        for p in piles:
+            mystr += ' '+" on ".join(p)+" on table\n"
+        mystr += ' goal:\n'
+        mystr += ' '+" on ".join(goal)+'\n'
+        return mystr
 
     blocks = ['b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9']
     random.shuffle(blocks)
     blocks = blocks[:nb_blocks]
-
+    # Generating piles
     nb_piles = random.randint(1, nb_blocks)  # Nb. of different piles. 1 to nb_blocks inclusive
     piles = []
     for nb in range(nb_piles):
@@ -204,7 +211,8 @@ def problemgen(nb_blocks=6):
     for nb2 in range(nb+1, nb_blocks):
         piles[random.randint(0, nb_piles-1)].append(blocks[nb2])
 
-# Pick two positions with distance at least 2 (so they're not on top of each other already)
+    # Generating goal
+    # Pick two positions with distance at least 2 (so they're not on top of each other already)
     while True:
         posblock1 = random.randint(0, nb_blocks-1)
         posblock2 = random.randint(0, nb_blocks-1)
@@ -212,44 +220,82 @@ def problemgen(nb_blocks=6):
             break
 
     flattenedlist = sum(piles, [])
-    problem = [flattenedlist[posblock1], flattenedlist[posblock2]] 
+    goal = [flattenedlist[posblock1], flattenedlist[posblock2]]
+    pbstr = state_goal(piles, goal)
+    pbstr += ' action:\n'
+    piles_pb = []
+    for p in piles:
+        piles_pb.append([x for x in p])
 
-
-    random.shuffle(piles)
-    return {'state':piles, 'goal':problem}
-    #print("state:",[" on ".join(p)+" on table" for p in piles],"| goal:"," on ".join(problem))
-
+    solstr = ''
+    goal_reached = False
+    while not goal_reached:
+        pile1st = None; pile2nd = None
+        for p in piles:
+            if goal[0] in p:
+                pile1st = p
+            if goal[1] in p:
+                pile2nd = p
+        assert (pile1st is not None) and (pile2nd is not None)
+        blocktomove = None
+        if pile1st[0] != goal[0]:  # 1st block in goal is not accessible
+            solstr += ' put '+pile1st[0]+' on table\n'
+            piles.append([pile1st[0]])
+            pile1st.pop(0)
+        elif pile2nd[0] != goal[1]: # 2nd block in goal is not accessible
+            solstr += ' put '+pile2nd[0]+' on table\n'
+            piles.append([pile2nd[0]])
+            pile2nd.pop(0)
+        else: # Both blocks are accessible!
+            solstr += ' put '+pile1st[0]+' on '+pile2nd[0]+'\n'
+            pile2nd.insert(0, pile1st[0])
+            pile1st.pop(0)
+            goal_reached = True
+        piles = [x for x in piles if x != []]  # Some of the actions above may result in empty piles
+        solstr += state_goal(piles, goal)
+        if not goal_reached:
+            solstr += ' action:\n'
+    solstr += ' OK\n'
+    return {'state':piles_pb, 'goal':goal, 'str': pbstr, 'solution': solstr}
 
 
 if __name__ == "__main__":
 
     import os
 
-    # fname = 'plans/bad_plan5_9.txt'
-    mydir = './plans'
-    fname_list = sorted(os.listdir(mydir))
-    for fname in fname_list:
-        if '.txt' not in fname:
-            continue
-        fname = mydir+'/'+fname
-        print(fname, ': ', end='')
-        with open(fname) as f:
-            plan = [l.rstrip() for l in f]
+    for numprob in range(3):
+        pb = problemgen(nb_blocks=4)
+        pbstr = pb['str'] + pb['solution']
+        outcome = check_plan([x.strip() for x in pbstr.split('\n')])
+        print(pbstr)
+        print(outcome['success'])
+        print(outcome['last_line'])
 
-        o = check_plan(plan)
-        if o['success']:
-            print("Success!")
-        else:
-            print("Error!", o['error_type'], "at line", str(o['last_line_num']), 
-                '>>'+o['last_line']+'<<')
-
-
-    problem = problemgen(nb_blocks=6)
-    print("state:")
-    state = [" on ".join(x)+" on table" for x in problem['state']]
-    for l in state:
-        print(l)
-    print('goal:')
-    print(" on ".join(problem['goal']))
+#    # fname = 'plans/bad_plan5_9.txt'
+#    mydir = './plans'
+#    fname_list = sorted(os.listdir(mydir))
+#    for fname in fname_list:
+#        if '.txt' not in fname:
+#            continue
+#        fname = mydir+'/'+fname
+#        print(fname, ': ', end='')
+#        with open(fname) as f:
+#            plan = [l.rstrip() for l in f]
+#
+#        o = check_plan(plan)
+#        if o['success']:
+#            print("Success!")
+#        else:
+#            print("Error!", o['error_type'], "at line", str(o['last_line_num']), 
+#                '>>'+o['last_line']+'<<')
+#
+#
+#    problem = problemgen(nb_blocks=6)
+#    print("state:")
+#    state = [" on ".join(x)+" on table" for x in problem['state']]
+#    for l in state:
+#        print(l)
+#    print('goal:')
+#    print(" on ".join(problem['goal']))
 
 
